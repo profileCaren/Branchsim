@@ -19,11 +19,13 @@ class GHistory {
     }
 
     public String addHistory(String actual) {
-        this.value = (this.value << 1) & this.mask;
+        this.value = (this.value << 1);
 
         if(actual.equals("T")){
             this.value += 1;
         }
+
+        this.value &= this.mask;
         return this.getHistory();
     }
 }
@@ -43,7 +45,7 @@ public class Branchsim {
         // 1. read arguments (fileName, m, n, bits_to_index)
         if(args.length < 4){
             System.out.println("Usage: java Branchscim [FILE_NAME] [M_HISTORY_BIT] [N_BIT_PREDICTOR] [BITS_TO_INDEX]");
-            System.out.println("FILE_NAME ∈ {gcc-8M.txt, gcc-10k.TXT}");
+            System.out.println("FILE_NAME ∈ {gcc-8M.txt, gcc-10k.txt, 2bit-good}");
             System.out.println("M_HISTORY_BIT ∈ [0, 12]");
             System.out.println("N_BIT_PREDICTOR ∈ [1, 2]");
             System.out.println("BITS_TO_INDEX ∈ [4, 12]");
@@ -54,6 +56,7 @@ public class Branchsim {
         int n = Integer.parseInt(args[2]);
         int bitsToIndex = Integer.parseInt(args[3]);
         if(m > 12 || bitsToIndex > 12 || n > 2 || n < 1) {
+            //TODO throw exception
             return;
         }
 
@@ -74,7 +77,7 @@ public class Branchsim {
             // 3.1 get the predictor and do predict
             int key = getKeyByAddress(address, bitsToIndex);
             String predictor = BHT.get(history.getHistory())[key];
-            String prediction =  predict(predictor);
+            String prediction = predict(predictor);
 
             // 3.3 do the statistics
             total ++;
