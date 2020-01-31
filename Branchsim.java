@@ -42,7 +42,11 @@ public class Branchsim {
     public static void main(String[] args) throws IOException {
         // 1. read arguments (fileName, m, n, bits_to_index)
         if(args.length < 4){
-            System.out.println("Usage: java Branchsim [FILE_NAME] [M_HISTORY_BIT] [N_BIT_PREDICTOR] [BITS_TO_INDEX]");
+            System.out.println("Usage: java Branchscim [FILE_NAME] [M_HISTORY_BIT] [N_BIT_PREDICTOR] [BITS_TO_INDEX]");
+            System.out.println("FILE_NAME ∈ {gcc-8M.txt, gcc-10k.TXT}");
+            System.out.println("M_HISTORY_BIT ∈ [0, 12]");
+            System.out.println("N_BIT_PREDICTOR ∈ [1, 2]");
+            System.out.println("BITS_TO_INDEX ∈ [4, 12]");
             return;
         }
         String fileName = args[0];
@@ -67,11 +71,9 @@ public class Branchsim {
             String address = tokens[0]; // "480558"
             String actual = tokens[1];  // "T" or "N"
 
-            // 3.1 get the predictor
+            // 3.1 get the predictor and do predict
             int key = getKeyByAddress(address, bitsToIndex);
             String predictor = BHT.get(history.getHistory())[key];
-
-            // 3.2 do the prediction
             String prediction =  predict(predictor);
 
             // 3.3 do the statistics
@@ -79,7 +81,13 @@ public class Branchsim {
             accurateCount += prediction.equals(actual) ? 1 : 0;
 
             // 3.3 update the predictor and global history
-            String newState = updateTwoBitPredictor(predictor, actual);
+            String newState = "";
+            if(n == 2){
+                newState = getNextState_2bit(predictor, actual);
+            }else {
+                newState = actual;
+            }
+
             String his = history.getHistory();
             BHT.get(his)[key] = newState;
             history.addHistory(actual);
@@ -87,7 +95,8 @@ public class Branchsim {
 
         float accuracy = (float) accurateCount / total;
         System.out.println("accuracy: " + accuracy + "%");
-        return ;
+
+        return;
     }
 
     // ("48bec6", 8) -> c6 (in int)
@@ -106,19 +115,25 @@ public class Branchsim {
     }
 
     private static Map<String, String[]> initBranchHistoryTable(int m, int n, int bitsToIndex){
-        // m = 6, n = 2, bitsToIndex = 8
+
         Map<String, String[]> BHT = new HashMap<>();
         int max = (int) Math.pow(2, m);
         for(int i = 0; i < max; i++){
             String[] predictors = new String[(int)Math.pow(2, bitsToIndex)];
-            Arrays.fill(predictors, "00");
+
+            if(n == 2){
+                Arrays.fill(predictors, NOT_TAKEN_STRONG);
+            }else{ // n == 1
+                Arrays.fill(predictors, "0");
+            }
 
             BHT.put(Integer.toBinaryString(i), predictors);
         }
         return BHT;
     }
 
-    private static String updateTwoBitPredictor(String currentStatus, String actual) {
+    private static String getNextState_2bit(String currentStatus, String actual) {
+
         String state = "";
         switch (currentStatus) {
             case NOT_TAKEN_STRONG:
@@ -129,10 +144,8 @@ public class Branchsim {
                 if (actual.equals(TAKEN)) state = TAKEN_STRONG;
                 else state = TAKEN_WEAK;
                 break;
+
             case NOT_TAKEN_WEAK:
-                if (actual.equals(TAKEN)) state = TAKEN_STRONG;
-                else state = NOT_TAKEN_STRONG;
-                break;
             case TAKEN_WEAK:
                 if (actual.equals(TAKEN)) state = TAKEN_STRONG;
                 else state = NOT_TAKEN_STRONG;
@@ -140,6 +153,7 @@ public class Branchsim {
         }
         return state;
     }
+
 }
 
 //
