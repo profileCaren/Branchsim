@@ -65,6 +65,9 @@ public class Branchsim {
         GHistory history = new GHistory(m);
         Map<String, String[]> BHT = initBranchHistoryTable(m, n, bitsToIndex);
 
+        // to record how many entries had been utilized.
+        Map<String, String> usedMap = new HashMap<>();
+
         // 3. Run the predictor
         int total = 0;
         int accurateCount = 0;
@@ -77,7 +80,8 @@ public class Branchsim {
 
             // 3.1 get the predictor and do predict
             int key = getKeyByAddress(address, bitsToIndex);
-            String predictor = BHT.get(history.getHistory())[key];
+            String historyString = history.getHistory();
+            String predictor = BHT.get(historyString)[key];
             String prediction = predict(predictor, n);
 
             // 3.3 do the statistics
@@ -92,12 +96,14 @@ public class Branchsim {
                 newState = actual.equals("T") ? "1" : "0";
             }
 
-            BHT.get(history.getHistory())[key] = newState;
+            BHT.get(historyString)[key] = newState;
             history.addHistory(actual);
+            usedMap.put(historyString+"-"+key, "whatever");  // mark the entry had been used.
         }
 
         float accuracy = (float) accurateCount / total * 100;
         System.out.println("accuracy: " + accuracy + "%");
+        System.out.println("Total entries: " + Math.pow(2, m + bitsToIndex) + ", used entry:" + usedMap.size());
 
         return;
     }
