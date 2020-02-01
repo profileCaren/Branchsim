@@ -15,6 +15,7 @@ class GHistory {
     }
 
     public String getHistory() {
+        // toBinaryString may not be necessary.
         return Integer.toBinaryString(this.value);
     }
 
@@ -77,7 +78,7 @@ public class Branchsim {
             // 3.1 get the predictor and do predict
             int key = getKeyByAddress(address, bitsToIndex);
             String predictor = BHT.get(history.getHistory())[key];
-            String prediction = predict(predictor);
+            String prediction = predict(predictor, n);
 
             // 3.3 do the statistics
             total ++;
@@ -88,15 +89,14 @@ public class Branchsim {
             if(n == 2){
                 newState = getNextState_2bit(predictor, actual);
             }else {
-                newState = actual;
+                newState = actual.equals("T") ? "1" : "0";
             }
 
-            String his = history.getHistory();
-            BHT.get(his)[key] = newState;
+            BHT.get(history.getHistory())[key] = newState;
             history.addHistory(actual);
         }
 
-        float accuracy = (float) accurateCount / total;
+        float accuracy = (float) accurateCount / total * 100;
         System.out.println("accuracy: " + accuracy + "%");
 
         return;
@@ -109,7 +109,11 @@ public class Branchsim {
         return Integer.parseInt(address, 16) & mask;
     }
 
-    private static String predict(String predictor){
+    private static String predict(String predictor, int predictor_bits){
+        // Use 1 bit predictor to predict®
+        if(predictor_bits == 1) return predictor.equals("0") ? "N" : "T";
+
+        // Use 2 bit predictor to predict
         if(predictor.equals(TAKEN_STRONG) || predictor.equals(TAKEN_WEAK)){
             return TAKEN;
         }else{
