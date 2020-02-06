@@ -102,11 +102,16 @@ public class Branchsim {
         }
 
         float accuracy = (float) accurateCount / total * 100;
-        System.out.println("accuracy: " + accuracy + "%");
-        System.out.println("Total entries: " + Math.pow(2, m + bitsToIndex) + ", used entry:" + usedMap.size());
+        System.out.println("file:" + "\t" + fileName);
+        System.out.println("(m.n):" + "\t(" + m +", " + n + ") predictor");
+        System.out.println("Accuracy:\t" + accuracy + "%");
+        System.out.println("Mis-prediction Rate: \t" + (100 - accuracy) + "%");
+        System.out.println("Total entries: \t" + Math.pow(2, m + bitsToIndex) + ", used entry:" + usedMap.size());
+        System.out.println();
 
         return;
     }
+
 
     // ("48bec6", 8) -> c6 (in int)
     // ("48bec6", 4) -> 6 (in int)
